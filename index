@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>blind tech communication</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 30px;
+    }
+    .post-button {
+      display: inline-block;
+      margin: 10px;
+      padding: 15px 25px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .post-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blind tech communication post</h1>
+  <div id="postsContainer"></div>
+
+  <script>
+    const RSS_URL = `https://api.rss2json.com/v1/api.json?rss_url=https://blindtechcommunication1.blogspot.com/feeds/posts/default?alt=rss`;
+
+    fetch(RSS_URL)
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById("postsContainer");
+        data.items.forEach(post => {
+          const button = document.createElement("a");
+          button.className = "post-button";
+          button.textContent = post.title;
+          button.href = `post.html?url=${encodeURIComponent(post.link)}`;
+          container.appendChild(button);
+        });
+      })
+      .catch(error => {
+        document.getElementById("postsContainer").innerText = "Unable to load posts.";
+        console.error("Error loading RSS feed:", error);
+      });
+  </script>
+</body>
+</html>

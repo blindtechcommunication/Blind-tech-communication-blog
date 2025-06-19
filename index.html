@@ -1,60 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>blind tech communication</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      padding: 40px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 32px;
-      margin-bottom: 30px;
-    }
-    .post-button {
-      display: inline-block;
-      margin: 10px;
-      padding: 15px 25px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .post-button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .notification-container {
+            max-width: 600px;
+            width: 100%;
+        }
+        .page-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .notification {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .notification:hover {
+            transform: translateY(-5px);
+        }
+        .notification-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .notification-button {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 5px;
+            transition: background-color 0.3s;
+        }
+        .notification-button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
-  <h1>Blind tech communication post and update</h1>
-  <div id="postsContainer"></div>
+    <div class="notification-container">
+        <div class="page-title">Latest Notifications</div>
+        <div class="loading">Loading...</div>
+    </div>
 
-  <script>
-    const RSS_URL = `https://api.rss2json.com/v1/api.json?rss_url=https://blindtechcommunication1.blogspot.com/feeds/posts/default?alt=rss`;
+    <script>
+        async function fetchPosts() {
+            try {
+                const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://blindtechcommunication1.blogspot.com/feeds/posts/default');
+                const data = await response.json();
+                const posts = data.items;
+                const container = document.querySelector('.notification-container');
+                container.innerHTML = '<div class="page-title">Latest Notifications</div>'; // Reset container with title
 
-    fetch(RSS_URL)
-      .then(response => response.json())
-      .then(data => {
-        const container = document.getElementById("postsContainer");
-        data.items.forEach(post => {
-          const button = document.createElement("a");
-          button.className = "post-button";
-          button.textContent = post.title;
-          button.href = `post.html?url=${encodeURIComponent(post.link)}`;
-          container.appendChild(button);
-        });
-      })
-      .catch(error => {
-        document.getElementById("postsContainer").innerText = "Unable to load posts.";
-        console.error("Error loading RSS feed:", error);
-      });
-  </script>
+                // Only process the latest post (first item in the array)
+                if (posts.length > 0) {
+                    const latestPost = posts[0];
+                    const notificationDiv = document.createElement('div');
+                    notificationDiv.className = 'notification';
+
+                    const title = document.createElement('div');
+                    title.className = 'notification-title';
+                    title.textContent = latestPost.title;
+                    notificationDiv.appendChild(title);
+
+                    // Extract links from post content
+                    const content = latestPost.description;
+                    const linkRegex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>(.*?)<\/a>/gi;
+                    let match;
+                    while ((match = linkRegex.exec(content)) !== null) {
+                        const linkUrl = match[1];
+                        const linkText = match[2] || 'View';
+
+                        const button = document.createElement('a');
+                        button.className = 'notification-button';
+                        button.href = linkUrl;
+                        button.target = '_blank';
+                        button.textContent = linkText;
+                        notificationDiv.appendChild(button);
+                    }
+
+                    // If no links found, use the post's main link
+                    if (!notificationDiv.querySelector('.notification-button')) {
+                        const button = document.createElement('a');
+                        button.className = 'notification-button';
+                        button.href = latestPost.link;
+                        button.target = '_blank';
+                        button.textContent = 'View Post';
+                        notificationDiv.appendChild(button);
+                    }
+
+                    container.appendChild(notificationDiv);
+                } else {
+                    container.innerHTML += '<div class="loading">No posts found</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const container = document.querySelector('.notification-container');
+                container.innerHTML = '<div class="page-title">Latest Notifications</div><div class="loading">Failed to load data</div>';
+            }
+        }
+
+        // Fetch posts on page load
+        fetchPosts();
+    </script>
 </body>
 </html>
